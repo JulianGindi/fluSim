@@ -2,8 +2,8 @@ require 'csv'
 
 INFECTION_RATE = 0.5
 # THRESHOLD = 0.2
-SIMULATION_DURATION = 30 # days
-POPULATION = 1000;
+SIMULATION_DURATION = 10 # days
+POPULATION = 1000
 
 class Person
 	attr_accessor :infected, :sick, :infectedPersons
@@ -14,43 +14,55 @@ class Person
 		@infectedPersons = 0
 	end
 
-	def interact
-		interaction = rand(POPULATION) + 1
+	def interact(population)
+		interaction = rand(population)
+	end
+
+	def printInfected
+		@infected
 	end
 end
 
-def transmitVirus(recIndividual)
-	recIndividual.infected = rand(2)
+class Virus
+	def transmitVirus(recIndividual)
+		recIndividual.infected = rand(2)
+	end
 end
 
 $population = []
 $infectedPopulation = []
 $temp = []  # simulates incubation period of 24 hours
 
+# Create Virus that will dominate this simulation
+
+virus = Virus.new
+
 POPULATION.times do
 	person = Person.new
 	$population << person
 end
 
-seed = $population[0]
+seed = $population.first
 seed.infected = 1
 $infectedPopulation << seed
 $population.delete(seed)
 
 $time = 1
-$totalInfect = 0
 i = 0
 
 while $time < SIMULATION_DURATION do
+
 	$temp.each do |temp|
 		$infectedPopulation << temp
 		$temp.delete(temp)
 	end
+
 	$infectedPopulation.each do |infectedPerson|
 		10.times do 
-			target = $population[infectedPerson.interact]
+			target = $population[infectedPerson.interact($population.length)]
+			break if target == nil
 			if target.infected == 0
-				transmitVirus(target)
+				virus.transmitVirus(target)
 				if target.infected == 1
 					infectedPerson.infectedPersons += 1
 					$temp << target
@@ -60,5 +72,5 @@ while $time < SIMULATION_DURATION do
 		end
 	end
 	$time += 1
-	$totalInfect += 1
 end
+puts $infectedPopulation.length
